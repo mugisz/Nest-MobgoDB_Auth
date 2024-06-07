@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../AuthPage/authPage.scss";
 import { Iauth } from "../../interface/Auth";
 import { useMutation } from "react-query";
 import { AuthService } from "../../service/auth.service";
 import { useAuth } from "../../Providers/AuthProviders";
+import { useNavigate } from "react-router-dom";
 
 const AuthPage = () => {
   const [data, setData] = useState<Iauth>({
@@ -11,8 +12,8 @@ const AuthPage = () => {
     password: "",
   });
   const [type, setType] = useState<string>("login");
-  const { user, setUser } = useAuth();
-  console.log(type);
+  const { user, setUser, setIsLoged } = useAuth();
+  const navigate = useNavigate();
   const { mutateAsync: loginAsync } = useMutation(
     "login",
     () => AuthService.login(data.email, data.password),
@@ -21,8 +22,9 @@ const AuthPage = () => {
         console.error(err);
       },
       onSuccess: (user: Iauth) => {
-        console.log(user);
         setUser(user);
+        setIsLoged(true);
+        navigate("/user");
       },
     }
   );
@@ -35,6 +37,8 @@ const AuthPage = () => {
       },
       onSuccess: (user: Iauth) => {
         setUser(user);
+        setIsLoged(true);
+        navigate("/user");
       },
     }
   );
@@ -48,10 +52,12 @@ const AuthPage = () => {
       await registrationAsync();
     }
   };
-
-  return user ? (
-    <h1>User in system</h1>
-  ) : (
+  useEffect(() => {
+    if (user) {
+      navigate("/user");
+    }
+  }, [user, navigate]);
+  return (
     <section className="authForm">
       <form className="form" onSubmit={(e) => handleSubmit(e)}>
         <div className="form-title">
